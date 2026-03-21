@@ -1,0 +1,10 @@
+.DS_Store
+**/.DS_Store
+**/__pycache__/
+*.pyc
+
+backend/.env
+backend/.venv/
+backend/.pytest_cache/
+backend/backups/
+backend/itbase.sqlite3
