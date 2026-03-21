@@ -1,0 +1,187 @@
+const state = {
+  page: 1,
+  pageSize: 24,
+  total: 0,
+  isAdmin: false,
+};
+
+const els = {
+  search: document.getElementById("search"),
+  grade: document.getElementById("grade"),
+  sort: document.getElementById("sort"),
+  list: document.getElementById("list"),
+  peopleCount: document.getElementById("people-count"),
+  pageLabel: document.getElementById("page-label"),
+  prev: document.getElementById("prev-page"),
+  next: document.getElementById("next-page"),
+  modal: document.getElementById("modal"),
+};
+
+async function api(path, options = {}) {
+  const res = await fetch(path, {
+    credentials: "include",
+    headers: { "content-type": "application/json", ...(options.headers || {}) },
+    ...options,
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.detail || "Request failed");
+  return data;
+}
+
+function esc(v) {
+  return String(v ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
+}
+
+function renderCard(dev, withActions = true) {
+  const skills = (dev.skills || []).slice(0, 8).map((x) => `<span>${esc(x)}</span>`).join(", ");
+  const cardId = `dev-${dev.id}`;
+  return `
+    <article class="card" id="${cardId}">
+      <h3>${esc(dev.name)}</h3>
+      <div class="muted">${esc(dev.title)}</div>
+      <div style="margin: 6px 0;"><span class="grade ${dev.grade}">${dev.grade}</span></div>
+      <div class="card-text"><b>Стек:</b> <span class="line-clamp">${esc(dev.stack || "-")}</span></div>
+      <div class="card-text"><b>Навыки:</b> <span class="line-clamp">${skills || "-"}</span></div>
+      <div class="card-text"><b>Опыт:</b> <span class="line-clamp">${esc(dev.experience || "-")}</span></div>
+      <div class="card-extra">
+        <div><b>Полный стек:</b> ${esc(dev.stack || "-")}</div>
+        <div><b>Полные навыки:</b> ${skills || "-"}</div>
+        <div><b>Полный опыт:</b> ${esc(dev.experience || "-")}</div>
+      </div>
+      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+        <button type="button" class="btn-expand is-hidden" data-expand="${dev.id}">Развернуть</button>
+      ${
+        withActions
+          ? `<button type="button" data-contact="${dev.id}">Связаться</button>`
+          : ""
+      }
+      </div>
+    </article>
+  `;
+}
+
+async function loadList() {
+  const params = new URLSearchParams({
+    query: els.search.value.trim(),
+    grade: els.grade.value,
+    sort: els.sort.value,
+    page: String(state.page),
+    page_size: String(state.pageSize),
+  });
+  const data = await api(`/api/public/developers?${params.toString()}`);
+  state.total = data.total;
+  const pages = Math.max(1, Math.ceil(state.total / state.pageSize));
+  state.page = Math.min(state.page, pages);
+  if (els.peopleCount) {
+    els.peopleCount.textContent = `Людей в базе: ${state.total}`;
+  }
+  els.pageLabel.textContent = `Страница ${state.page} / ${pages}`;
+  els.list.innerHTML = data.items.map((x) => renderCard(x)).join("");
+  wireContactButtons();
+  wireExpandButtons();
+}
+
+function wireContactButtons() {
+  document.querySelectorAll("[data-contact]").forEach((btn) => {
+    btn.onclick = async () => {
+      const developerId = Number(btn.getAttribute("data-contact"));
+      const tg = prompt("Ваш Telegram (формат @username):", "@");
+      if (!tg) return;
+      const message = prompt("Комментарий (опционально):", "") || "";
+      await api("/api/public/contact-requests", {
+        method: "POST",
+        body: JSON.stringify({ developer_id: developerId, customer_telegram: tg, message }),
+      });
+      alert("Запрос отправлен администратору.");
+    };
+  });
+}
+
+function wireExpandButtons() {
+  document.querySelectorAll("[data-expand]").forEach((btn) => {
+    const card = btn.closest(".card");
+    if (!card) return;
+    const clamped = Array.from(card.querySelectorAll(".line-clamp"));
+    const hasOverflow = clamped.some((el) => el.scrollHeight > el.clientHeight + 1);
+    btn.classList.toggle("is-hidden", !hasOverflow);
+
+    btn.onclick = () => {
+      if (!card) return;
+      const expanded = card.classList.toggle("is-expanded");
+      btn.textContent = expanded ? "Свернуть" : "Развернуть";
+    };
+  });
+}
+
+function openModal(html) {
+  els.modal.innerHTML = html;
+  els.modal.showModal();
+}
+
+async function refreshAdminState() {
+  const me = await api("/api/admin/me");
+  state.isAdmin = !!me.isAdmin;
+}
+
+function devFormHtml(dev = null) {
+  return `
+    <input id="f-name" placeholder="ФИО / никнейм" value="${esc(dev?.name || "")}" />
+    <input id="f-title" placeholder="Позиция" value="${esc(dev?.title || "")}" />
+    <input id="f-stack" placeholder="Стек через запятую или текстом" value="${esc(dev?.stack || "")}" />
+    <input id="f-skills" placeholder="Навыки через запятую" value="${esc((dev?.skills || []).join(", "))}" />
+    <textarea id="f-experience" placeholder="Опыт">${esc(dev?.experience || "")}</textarea>
+    <select id="f-grade">
+      ${["Junior", "Middle", "Senior", "Lead"]
+        .map((g) => `<option ${dev?.grade === g ? "selected" : ""}>${g}</option>`)
+        .join("")}
+    </select>
+    <input id="f-email" placeholder="Email (виден только админу)" value="${esc(dev?.contact_email || "")}" />
+    <input id="f-tg" placeholder="Telegram (виден только админу)" value="${esc(dev?.contact_telegram || "")}" />
+  `;
+}
+
+function readDevForm() {
+  return {
+    name: document.getElementById("f-name").value.trim(),
+    title: document.getElementById("f-title").value.trim(),
+    stack: document.getElementById("f-stack").value.trim(),
+    skills: document
+      .getElementById("f-skills")
+      .value.split(",")
+      .map((x) => x.trim())
+      .filter(Boolean),
+    experience: document.getElementById("f-experience").value.trim(),
+    grade: document.getElementById("f-grade").value,
+    contact_email: document.getElementById("f-email").value.trim(),
+    contact_telegram: document.getElementById("f-tg").value.trim(),
+  };
+}
+
+
+els.search.oninput = () => {
+  state.page = 1;
+  loadList();
+};
+els.grade.onchange = () => {
+  state.page = 1;
+  loadList();
+};
+els.sort.onchange = () => {
+  state.page = 1;
+  loadList();
+};
+els.prev.onclick = () => {
+  state.page = Math.max(1, state.page - 1);
+  loadList();
+};
+els.next.onclick = () => {
+  const pages = Math.max(1, Math.ceil(state.total / state.pageSize));
+  state.page = Math.min(pages, state.page + 1);
+  loadList();
+};
+(async function boot() {
+  await loadList();
+})();

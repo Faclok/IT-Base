@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>IT Base</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <section class="hero-note">
+        <div class="hero-title">Эффективный нетворкинг начинается здесь.</div>
+        <div class="hero-author">
+          По вопросам сотрудничества:
+          <a href="https://t.me/zzorin_ilya" target="_blank" rel="noopener noreferrer">Зорин Илья</a>
+        </div>
+      </section>
+      <header class="topbar">
+        <div style="display:flex;align-items:center;gap:10px">
+          <h1 style="margin:0">IT Base</h1>
+          <span id="people-count" class="muted">Людей в базе: 0</span>
+        </div>
+        <a href="/admin"><button>Админ панель</button></a>
+      </header>
+
+      <section class="filters">
+        <input id="search" placeholder="Поиск по стеку, навыкам, опыту..." />
+        <select id="grade">
+          <option value="">Любой грейд</option>
+          <option>Junior</option>
+          <option>Middle</option>
+          <option>Senior</option>
+          <option>Lead</option>
+        </select>
+        <select id="sort">
+          <option value="date_desc">Сначала новые</option>
+          <option value="grade_desc">Сначала высокий грейд</option>
+          <option value="grade_asc">Сначала низкий грейд</option>
+        </select>
+      </section>
+
+      <section id="list" class="cards"></section>
+      <div class="pager">
+        <button id="prev-page">Назад</button>
+        <span id="page-label"></span>
+        <button id="next-page">Вперед</button>
+      </div>
+    </div>
+
+    <dialog id="modal"></dialog>
+    <script src="/static/app.js"></script>
+  </body>
+</html>

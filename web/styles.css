@@ -1,0 +1,149 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #0b0d12;
+  color: #f2f2f2;
+}
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 16px;
+}
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.hero-note {
+  border: 1px solid #2b3447;
+  background: #101522;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+.hero-title {
+  font-size: 18px;
+  font-weight: 700;
+}
+.hero-author {
+  margin-top: 6px;
+  color: #b8c4da;
+  font-size: 14px;
+}
+.hero-author a {
+  color: #8ab4ff;
+  text-decoration: none;
+}
+.hero-author a:hover {
+  text-decoration: underline;
+}
+.filters {
+  display: grid;
+  grid-template-columns: 1fr 180px 220px;
+  gap: 10px;
+  margin: 14px 0;
+}
+.ai-box {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+textarea,
+input,
+select,
+button {
+  background: #151a24;
+  color: #fff;
+  border: 1px solid #2b3447;
+  border-radius: 8px;
+  padding: 10px;
+}
+button {
+  cursor: pointer;
+}
+.cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.card {
+  border: 1px solid #2b3447;
+  background: #101522;
+  padding: 12px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 260px;
+}
+.card h3 {
+  margin: 0;
+}
+.card-text {
+  font-size: 14px;
+}
+.line-clamp {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+.card-extra {
+  display: none;
+  margin-top: 4px;
+  font-size: 14px;
+}
+.card.is-expanded .card-extra {
+  display: block;
+}
+.card.is-expanded .line-clamp {
+  -webkit-line-clamp: unset;
+  overflow: visible;
+}
+.is-hidden {
+  display: none !important;
+}
+.grade {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 20px;
+  font-size: 12px;
+}
+.Junior {
+  background: #1f8f3f;
+}
+.Middle {
+  background: #6b46c1;
+}
+.Senior {
+  background: #b91c1c;
+}
+.Lead {
+  background: #1d4ed8;
+}
+.pager {
+  margin-top: 14px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+dialog {
+  border: 1px solid #2b3447;
+  border-radius: 10px;
+  background: #111827;
+  color: white;
+  width: min(720px, 92vw);
+}
+.muted {
+  opacity: 0.8;
+  font-size: 13px;
+}
+@media (max-width: 900px) {
+  .cards {
+    grid-template-columns: 1fr;
+  }
+  .filters {
+    grid-template-columns: 1fr;
+  }
+}
