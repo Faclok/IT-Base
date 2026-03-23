@@ -126,13 +126,16 @@ def map_row(raw: dict) -> DeveloperIn:
             normalized[out_key] = n(str(value or ""))
     source_id = normalized.get("source_id", "")
     auto_name = f"Candidate {source_id}" if source_id else "Candidate Imported"
+    name_value = normalized.get("name", "") or auto_name
+    title_value = normalized.get("title", "") or "Developer"
+    grade_value = normalized.get("grade", "") or "Junior"
     payload = DeveloperIn(
-        name=normalized.get("name", auto_name),
-        title=normalized.get("title", "Developer"),
+        name=name_value,
+        title=title_value,
         stack=normalized.get("stack", ""),
         skills=parse_skills(normalized.get("skills", "")),
         experience=normalized.get("experience", ""),
-        grade=normalized.get("grade", "Junior"),
+        grade=grade_value,
         contact_email=normalized.get("contact_email", ""),
         contact_telegram=normalized.get("contact_telegram", ""),
     )
