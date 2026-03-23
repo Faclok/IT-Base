@@ -9,6 +9,6 @@ build:
   useCache: true
 run:
   persistenceMount: /data
-  scriptName: backend/app.py
+  scriptName: backend/start.sh
   containerPort: 8000
   servicePort: 80
