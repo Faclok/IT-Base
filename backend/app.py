@@ -401,7 +401,7 @@ async def create_admin(request: Request, payload: DeveloperIn):
 @app.post("/api/admin/developers/import")
 async def import_admin_developers(
     request: Request,
-    replace_existing: bool = Query(False),
+    replace_existing: bool = Query(True),
     file: UploadFile = File(...),
 ):
     await req_admin(request)
