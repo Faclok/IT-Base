@@ -95,6 +95,10 @@ async function renderAdmin(requestFilter = { status: "all", customer_telegram: "
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px">
       <input id="import-file" type="file" accept=".csv,.xlsx" />
+      <label style="display:flex;gap:6px;align-items:center">
+        <input id="import-replace" type="checkbox" checked />
+        Заменить базу перед импортом
+      </label>
       <button id="import-btn">Импорт CSV/XLSX</button>
     </div>
     <div>${devs
@@ -151,9 +155,10 @@ async function renderAdmin(requestFilter = { status: "all", customer_telegram: "
   document.getElementById("import-btn").onclick = async () => {
     const input = document.getElementById("import-file");
     if (!input.files || !input.files[0]) return alert("Выбери CSV или XLSX файл");
+    const replace = Boolean(document.getElementById("import-replace")?.checked);
     const fd = new FormData();
     fd.append("file", input.files[0]);
-    const res = await fetch("/api/admin/developers/import", {
+    const res = await fetch(`/api/admin/developers/import?replace_existing=${replace ? "1" : "0"}`, {
       method: "POST",
       credentials: "include",
       body: fd,
@@ -165,7 +170,7 @@ async function renderAdmin(requestFilter = { status: "all", customer_telegram: "
       .map((e) => `Строка ${e.row}: ${e.error}`)
       .join("\n");
     alert(
-      `Импорт завершен.\nДобавлено: ${data.inserted}\nСтрок в файле: ${data.total_rows}` +
+      `Импорт завершен.\nУдалено старых карточек: ${data.deleted_developers || 0}\nДобавлено: ${data.inserted}\nСтрок в файле: ${data.total_rows}` +
         (firstErrors ? `\nОшибки:\n${firstErrors}` : "")
     );
     await renderAdmin(requestFilter);

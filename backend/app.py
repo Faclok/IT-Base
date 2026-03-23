@@ -144,6 +144,21 @@ def map_row(raw: dict) -> DeveloperIn:
     return validate_developer_payload(payload)
 
 
+def normalize_sheet_grade(sheet_name: str) -> str:
+    v = n(sheet_name).lower()
+    mapping = {
+        "junior": "Junior",
+        "middle": "Middle",
+        "senior": "Senior",
+        "lead": "Lead",
+        "джуниор": "Junior",
+        "мидл": "Middle",
+        "сеньор": "Senior",
+        "лид": "Lead",
+    }
+    return mapping.get(v, "")
+
+
 def sign(ts: int) -> str:
     raw = str(ts).encode()
     sig = hmac.new(COOKIE_SECRET, raw, hashlib.sha256).digest()
@@ -384,7 +399,11 @@ async def create_admin(request: Request, payload: DeveloperIn):
 
 
 @app.post("/api/admin/developers/import")
-async def import_admin_developers(request: Request, file: UploadFile = File(...)):
+async def import_admin_developers(
+    request: Request,
+    replace_existing: bool = Query(False),
+    file: UploadFile = File(...),
+):
     await req_admin(request)
     filename = (file.filename or "").lower()
     raw = await file.read()
@@ -398,16 +417,21 @@ async def import_admin_developers(request: Request, file: UploadFile = File(...)
         rows = [dict(r) for r in reader]
     elif filename.endswith(".xlsx"):
         wb = load_workbook(filename=io.BytesIO(raw), read_only=True, data_only=True)
-        ws = wb.active
-        header = []
-        for idx, row in enumerate(ws.iter_rows(values_only=True)):
-            values = [n(str(x or "")) for x in row]
-            if idx == 0:
-                header = values
-                continue
-            if not any(values):
-                continue
-            rows.append({header[i]: values[i] if i < len(values) else "" for i in range(len(header))})
+        for ws in wb.worksheets:
+            header = []
+            sheet_grade = normalize_sheet_grade(ws.title)
+            for idx, row in enumerate(ws.iter_rows(values_only=True)):
+                values = [n(str(x or "")) for x in row]
+                if idx == 0:
+                    header = values
+                    continue
+                if not any(values):
+                    continue
+                row_dict = {header[i]: values[i] if i < len(values) else "" for i in range(len(header))}
+                # If grade column is missing in the sheet, infer it from the worksheet name.
+                if sheet_grade and not any(n(str(k)).lower() in ("grade", "грейд") for k in row_dict.keys()):
+                    row_dict["grade"] = sheet_grade
+                rows.append(row_dict)
     else:
         raise HTTPException(status_code=400, detail="unsupported_file_type")
 
@@ -424,8 +448,13 @@ async def import_admin_developers(request: Request, file: UploadFile = File(...)
             errors.append({"row": i, "error": str(detail)})
 
     inserted = 0
-    if ok_payloads:
+    deleted_developers = 0
+    if ok_payloads or replace_existing:
         async with aiosqlite.connect(DB_PATH) as db:
+            if replace_existing:
+                row = await (await db.execute("select count(*) as c from developers")).fetchone()
+                deleted_developers = int(row[0] if row else 0)
+                await db.execute("delete from developers")
             await db.executemany(
                 "insert into developers(name,title,stack,skills_json,experience,grade,contact_email,contact_telegram) values (?,?,?,?,?,?,?,?)",
                 [
@@ -445,7 +474,14 @@ async def import_admin_developers(request: Request, file: UploadFile = File(...)
             await db.commit()
             inserted = len(ok_payloads)
 
-    return {"ok": True, "inserted": inserted, "errors": errors[:30], "total_rows": len(rows)}
+    return {
+        "ok": True,
+        "replace_existing": replace_existing,
+        "deleted_developers": deleted_developers,
+        "inserted": inserted,
+        "errors": errors[:30],
+        "total_rows": len(rows),
+    }
 
 
 @app.put("/api/admin/developers/{developer_id}")
