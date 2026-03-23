@@ -87,6 +87,7 @@ def validate_developer_payload(payload: DeveloperIn) -> DeveloperIn:
 
 
 HEADER_ALIASES = {
+    "id": "source_id",
     "name": "name",
     "fio": "name",
     "nickname": "name",
@@ -123,9 +124,11 @@ def map_row(raw: dict) -> DeveloperIn:
         out_key = HEADER_ALIASES.get(n(str(key)).lower())
         if out_key:
             normalized[out_key] = n(str(value or ""))
+    source_id = normalized.get("source_id", "")
+    auto_name = f"Candidate {source_id}" if source_id else "Candidate Imported"
     payload = DeveloperIn(
-        name=normalized.get("name", ""),
-        title=normalized.get("title", ""),
+        name=normalized.get("name", auto_name),
+        title=normalized.get("title", "Developer"),
         stack=normalized.get("stack", ""),
         skills=parse_skills(normalized.get("skills", "")),
         experience=normalized.get("experience", ""),
