@@ -126,8 +126,10 @@ def map_row(raw: dict) -> DeveloperIn:
             normalized[out_key] = n(str(value or ""))
     source_id = normalized.get("source_id", "")
     auto_name = f"Candidate {source_id}" if source_id else "Candidate Imported"
-    name_value = normalized.get("name", "") or auto_name
-    title_value = normalized.get("title", "") or "Developer"
+    raw_name = normalized.get("name", "")
+    raw_title = normalized.get("title", "")
+    name_value = raw_name if len(raw_name) >= 2 else auto_name
+    title_value = raw_title if len(raw_title) >= 2 else "Developer"
     grade_value = normalized.get("grade", "") or "Junior"
     payload = DeveloperIn(
         name=name_value,
