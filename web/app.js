@@ -1,7 +1,8 @@
 const state = {
   page: 1,
   pageSize: 24,
-  total: 0,
+  totalFiltered: 0,
+  totalAll: 0,
   isAdmin: false,
 };
 
@@ -11,6 +12,11 @@ const els = {
   sort: document.getElementById("sort"),
   list: document.getElementById("list"),
   peopleCount: document.getElementById("people-count"),
+  countTotal: document.getElementById("count-total"),
+  countJunior: document.getElementById("count-junior"),
+  countMiddle: document.getElementById("count-middle"),
+  countSenior: document.getElementById("count-senior"),
+  countLead: document.getElementById("count-lead"),
   pageLabel: document.getElementById("page-label"),
   prev: document.getElementById("prev-page"),
   next: document.getElementById("next-page"),
@@ -63,7 +69,20 @@ function renderCard(dev, withActions = true) {
   `;
 }
 
+function formatGradeCount(part, total) {
+  const p = total > 0 ? Math.round((part / total) * 100) : 0;
+  return `${part} (${p}%)`;
+}
+
 async function loadList() {
+  const [totalData, juniorData, middleData, seniorData, leadData] = await Promise.all([
+    api("/api/public/developers?page=1&page_size=1&query=&grade=&sort=date_desc"),
+    api("/api/public/developers?page=1&page_size=1&query=&grade=Junior&sort=date_desc"),
+    api("/api/public/developers?page=1&page_size=1&query=&grade=Middle&sort=date_desc"),
+    api("/api/public/developers?page=1&page_size=1&query=&grade=Senior&sort=date_desc"),
+    api("/api/public/developers?page=1&page_size=1&query=&grade=Lead&sort=date_desc"),
+  ]);
+  state.totalAll = totalData.total;
   const params = new URLSearchParams({
     query: els.search.value.trim(),
     grade: els.grade.value,
@@ -72,12 +91,21 @@ async function loadList() {
     page_size: String(state.pageSize),
   });
   const data = await api(`/api/public/developers?${params.toString()}`);
-  state.total = data.total;
-  const pages = Math.max(1, Math.ceil(state.total / state.pageSize));
+  state.totalFiltered = data.total;
+  const pages = Math.max(1, Math.ceil(state.totalFiltered / state.pageSize));
   state.page = Math.min(state.page, pages);
   if (els.peopleCount) {
-    els.peopleCount.textContent = `Людей в базе: ${state.total}`;
+    els.peopleCount.textContent = `Людей в базе: ${state.totalAll}`;
   }
+  if (els.countTotal) els.countTotal.textContent = String(state.totalAll);
+  if (els.countJunior) els.countJunior.textContent = formatGradeCount(juniorData.total || 0, state.totalAll);
+  if (els.countMiddle) els.countMiddle.textContent = formatGradeCount(middleData.total || 0, state.totalAll);
+  if (els.countSenior) els.countSenior.textContent = formatGradeCount(seniorData.total || 0, state.totalAll);
+  if (els.countLead) els.countLead.textContent = formatGradeCount(leadData.total || 0, state.totalAll);
+  document.querySelectorAll("[data-grade-chip]").forEach((chip) => {
+    const chipGrade = chip.getAttribute("data-grade-chip") || "";
+    chip.classList.toggle("active", chipGrade === els.grade.value);
+  });
   els.pageLabel.textContent = `Страница ${state.page} / ${pages}`;
   els.list.innerHTML = data.items.map((x) => renderCard(x)).join("");
   wireContactButtons();
@@ -173,12 +201,20 @@ els.sort.onchange = () => {
   state.page = 1;
   loadList();
 };
+document.querySelectorAll("[data-grade-chip]").forEach((chip) => {
+  chip.onclick = () => {
+    const chipGrade = chip.getAttribute("data-grade-chip") || "";
+    els.grade.value = els.grade.value === chipGrade ? "" : chipGrade;
+    state.page = 1;
+    loadList();
+  };
+});
 els.prev.onclick = () => {
   state.page = Math.max(1, state.page - 1);
   loadList();
 };
 els.next.onclick = () => {
-  const pages = Math.max(1, Math.ceil(state.total / state.pageSize));
+  const pages = Math.max(1, Math.ceil(state.totalFiltered / state.pageSize));
   state.page = Math.min(pages, state.page + 1);
   loadList();
 };

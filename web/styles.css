@@ -14,6 +14,35 @@ body {
   justify-content: space-between;
   align-items: center;
 }
+.grade-counters {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+  position: sticky;
+  top: 8px;
+  z-index: 5;
+  background: #0b0d12;
+  padding: 6px 0;
+}
+.grade-counter {
+  border: 1px solid #2b3447;
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: left;
+}
+button.grade-counter {
+  cursor: pointer;
+}
+.grade-counter.active {
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.18) inset;
+}
+.total-counter {
+  background: #151a24;
+  color: #d7deef;
+}
 .hero-note {
   border: 1px solid #2b3447;
   background: #101522;
@@ -145,5 +174,14 @@ dialog {
   }
   .filters {
     grid-template-columns: 1fr;
+  }
+  .grade-counters {
+    grid-template-columns: 1fr 1fr;
+    position: static;
+    padding: 0;
+  }
+  .grade-counter {
+    font-size: 12px;
+    padding: 7px 8px;
   }
 }
