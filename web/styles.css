@@ -48,10 +48,10 @@ button.grade-counter {
 .grade-counter.active {
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2) inset;
 }
-.grade-counter.Junior { border-bottom: 3px solid #1f8f3f; }
-.grade-counter.Middle { border-bottom: 3px solid #6b46c1; }
-.grade-counter.Senior { border-bottom: 3px solid #b91c1c; }
-.grade-counter.Lead { border-bottom: 3px solid #1d4ed8; }
+.grade-counter.Junior { border-bottom: 3px solid rgba(31, 143, 63, 0.7); }
+.grade-counter.Middle { border-bottom: 3px solid rgba(107, 70, 193, 0.7); }
+.grade-counter.Senior { border-bottom: 3px solid rgba(185, 28, 28, 0.7); }
+.grade-counter.Lead { border-bottom: 3px solid rgba(29, 78, 216, 0.7); }
 .hero-note {
   border: 1px solid #2b3447;
   background: #101522;
@@ -147,16 +147,16 @@ button {
   border-radius: 20px;
   font-size: 12px;
 }
-.Junior {
+.grade.Junior {
   background: #1f8f3f;
 }
-.Middle {
+.grade.Middle {
   background: #6b46c1;
 }
-.Senior {
+.grade.Senior {
   background: #b91c1c;
 }
-.Lead {
+.grade.Lead {
   background: #1d4ed8;
 }
 .pager {
