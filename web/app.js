@@ -12,7 +12,6 @@ const els = {
   sort: document.getElementById("sort"),
   list: document.getElementById("list"),
   peopleCount: document.getElementById("people-count"),
-  countTotal: document.getElementById("count-total"),
   countJunior: document.getElementById("count-junior"),
   countMiddle: document.getElementById("count-middle"),
   countSenior: document.getElementById("count-senior"),
@@ -91,7 +90,6 @@ async function loadList() {
   if (els.peopleCount) {
     els.peopleCount.textContent = `Людей в базе: ${state.totalAll}`;
   }
-  if (els.countTotal) els.countTotal.textContent = String(state.totalAll);
   if (els.countJunior) els.countJunior.textContent = formatGradeCount(Number(statsData.by_grade?.Junior || 0), state.totalAll);
   if (els.countMiddle) els.countMiddle.textContent = formatGradeCount(Number(statsData.by_grade?.Middle || 0), state.totalAll);
   if (els.countSenior) els.countSenior.textContent = formatGradeCount(Number(statsData.by_grade?.Senior || 0), state.totalAll);
