@@ -75,14 +75,8 @@ function formatGradeCount(part, total) {
 }
 
 async function loadList() {
-  const [totalData, juniorData, middleData, seniorData, leadData] = await Promise.all([
-    api("/api/public/developers?page=1&page_size=1&query=&grade=&sort=date_desc"),
-    api("/api/public/developers?page=1&page_size=1&query=&grade=Junior&sort=date_desc"),
-    api("/api/public/developers?page=1&page_size=1&query=&grade=Middle&sort=date_desc"),
-    api("/api/public/developers?page=1&page_size=1&query=&grade=Senior&sort=date_desc"),
-    api("/api/public/developers?page=1&page_size=1&query=&grade=Lead&sort=date_desc"),
-  ]);
-  state.totalAll = totalData.total;
+  const statsData = await api("/api/public/stats");
+  state.totalAll = Number(statsData.total || 0);
   const params = new URLSearchParams({
     query: els.search.value.trim(),
     grade: els.grade.value,
@@ -98,10 +92,10 @@ async function loadList() {
     els.peopleCount.textContent = `Людей в базе: ${state.totalAll}`;
   }
   if (els.countTotal) els.countTotal.textContent = String(state.totalAll);
-  if (els.countJunior) els.countJunior.textContent = formatGradeCount(juniorData.total || 0, state.totalAll);
-  if (els.countMiddle) els.countMiddle.textContent = formatGradeCount(middleData.total || 0, state.totalAll);
-  if (els.countSenior) els.countSenior.textContent = formatGradeCount(seniorData.total || 0, state.totalAll);
-  if (els.countLead) els.countLead.textContent = formatGradeCount(leadData.total || 0, state.totalAll);
+  if (els.countJunior) els.countJunior.textContent = formatGradeCount(Number(statsData.by_grade?.Junior || 0), state.totalAll);
+  if (els.countMiddle) els.countMiddle.textContent = formatGradeCount(Number(statsData.by_grade?.Middle || 0), state.totalAll);
+  if (els.countSenior) els.countSenior.textContent = formatGradeCount(Number(statsData.by_grade?.Senior || 0), state.totalAll);
+  if (els.countLead) els.countLead.textContent = formatGradeCount(Number(statsData.by_grade?.Lead || 0), state.totalAll);
   document.querySelectorAll("[data-grade-chip]").forEach((chip) => {
     const chipGrade = chip.getAttribute("data-grade-chip") || "";
     chip.classList.toggle("active", chipGrade === els.grade.value);

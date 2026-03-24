@@ -328,6 +328,20 @@ async def list_public(query: str = "", grade: str = "", sort: str = "date_desc",
     return {"items": [to_public(x) for x in out[start : start + page_size]], "total": total, "page": page, "page_size": page_size}
 
 
+@app.get("/api/public/stats")
+async def public_stats():
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        total_row = await (await db.execute("select count(*) as c from developers")).fetchone()
+        grade_rows = await (await db.execute("select grade, count(*) as c from developers group by grade")).fetchall()
+    by_grade = {"Junior": 0, "Middle": 0, "Senior": 0, "Lead": 0}
+    for r in grade_rows:
+        g = r["grade"]
+        if g in by_grade:
+            by_grade[g] = int(r["c"])
+    return {"total": int(total_row["c"] if total_row else 0), "by_grade": by_grade}
+
+
 @app.post("/api/public/recommendations")
 async def rec(payload: dict):
     query = n(str(payload.get("query", "")))
