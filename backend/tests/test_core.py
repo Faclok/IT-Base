@@ -11,7 +11,7 @@ def build_client(tmp_path: Path) -> TestClient:
     module_path = Path(__file__).resolve().parents[1] / "app.py"
     spec = importlib.util.spec_from_file_location("itbase_main", module_path)
     if not spec or not spec.loader:
-        raise RuntimeError("cannot load backend/main.py")
+        raise RuntimeError("cannot load backend/app.py")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     client = TestClient(module.app)

@@ -5,6 +5,7 @@ import hashlib
 import hmac
 import io
 import json
+import logging
 import math
 import os
 import re
@@ -30,6 +31,7 @@ COOKIE_NAME = "itbase_admin"
 COOKIE_TTL = 60 * 60 * 12
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+logger = logging.getLogger(__name__)
 GRADE_ORDER = {"Junior": 0, "Middle": 1, "Senior": 2, "Lead": 3}
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 TELEGRAM_RE = re.compile(r"^@[\w\d_]{3,}$")
@@ -372,8 +374,8 @@ async def rec(payload: dict):
                     items.append(by_id[x["id"]] | {"score": float(x.get("score", 0)), "reason": str(x.get("reason", ""))})
             if items:
                 return {"provider": "openai", "items": items}
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("OpenAI recommendations failed, fallback to tfidf: %s", e)
     return {"provider": "tfidf", "items": rank_tfidf(query, rows)}
 
 

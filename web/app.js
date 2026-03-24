@@ -3,8 +3,9 @@ const state = {
   pageSize: 24,
   totalFiltered: 0,
   totalAll: 0,
-  isAdmin: false,
 };
+
+const { api, esc } = window.ITBaseCommon;
 
 const els = {
   search: document.getElementById("search"),
@@ -19,26 +20,7 @@ const els = {
   pageLabel: document.getElementById("page-label"),
   prev: document.getElementById("prev-page"),
   next: document.getElementById("next-page"),
-  modal: document.getElementById("modal"),
 };
-
-async function api(path, options = {}) {
-  const res = await fetch(path, {
-    credentials: "include",
-    headers: { "content-type": "application/json", ...(options.headers || {}) },
-    ...options,
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.detail || "Request failed");
-  return data;
-}
-
-function esc(v) {
-  return String(v ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;");
-}
 
 function renderCard(dev, withActions = true) {
   const skills = (dev.skills || []).slice(0, 8).map((x) => `<span>${esc(x)}</span>`).join(", ");
@@ -134,50 +116,6 @@ function wireExpandButtons() {
       btn.textContent = expanded ? "Свернуть" : "Развернуть";
     };
   });
-}
-
-function openModal(html) {
-  els.modal.innerHTML = html;
-  els.modal.showModal();
-}
-
-async function refreshAdminState() {
-  const me = await api("/api/admin/me");
-  state.isAdmin = !!me.isAdmin;
-}
-
-function devFormHtml(dev = null) {
-  return `
-    <input id="f-name" placeholder="ФИО / никнейм" value="${esc(dev?.name || "")}" />
-    <input id="f-title" placeholder="Позиция" value="${esc(dev?.title || "")}" />
-    <input id="f-stack" placeholder="Стек через запятую или текстом" value="${esc(dev?.stack || "")}" />
-    <input id="f-skills" placeholder="Навыки через запятую" value="${esc((dev?.skills || []).join(", "))}" />
-    <textarea id="f-experience" placeholder="Опыт">${esc(dev?.experience || "")}</textarea>
-    <select id="f-grade">
-      ${["Junior", "Middle", "Senior", "Lead"]
-        .map((g) => `<option ${dev?.grade === g ? "selected" : ""}>${g}</option>`)
-        .join("")}
-    </select>
-    <input id="f-email" placeholder="Email (виден только админу)" value="${esc(dev?.contact_email || "")}" />
-    <input id="f-tg" placeholder="Telegram (виден только админу)" value="${esc(dev?.contact_telegram || "")}" />
-  `;
-}
-
-function readDevForm() {
-  return {
-    name: document.getElementById("f-name").value.trim(),
-    title: document.getElementById("f-title").value.trim(),
-    stack: document.getElementById("f-stack").value.trim(),
-    skills: document
-      .getElementById("f-skills")
-      .value.split(",")
-      .map((x) => x.trim())
-      .filter(Boolean),
-    experience: document.getElementById("f-experience").value.trim(),
-    grade: document.getElementById("f-grade").value,
-    contact_email: document.getElementById("f-email").value.trim(),
-    contact_telegram: document.getElementById("f-tg").value.trim(),
-  };
 }
 
 

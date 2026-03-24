@@ -1,22 +1,5 @@
 const root = document.getElementById("admin-root");
-
-async function api(path, options = {}) {
-  const res = await fetch(path, {
-    credentials: "include",
-    headers: { "content-type": "application/json", ...(options.headers || {}) },
-    ...options,
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.detail || "Request failed");
-  return data;
-}
-
-function esc(v) {
-  return String(v ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;");
-}
+const { api, esc } = window.ITBaseCommon;
 
 function devForm(dev = null) {
   return `
