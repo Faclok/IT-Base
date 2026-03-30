@@ -330,6 +330,27 @@ async def list_public(query: str = "", grade: str = "", sort: str = "date_desc",
     return {"items": [to_public(x) for x in out[start : start + page_size]], "total": total, "page": page, "page_size": page_size}
 
 
+@app.get("/api/public/developers/{developer_id}")
+async def get_public_developer(developer_id: int):
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        row = await (
+            await db.execute(
+                """
+                select id, created_at, name, title, stack, skills_json, experience, grade
+                from developers
+                where id = ?
+                """,
+                (developer_id,)
+            )
+        ).fetchone()
+
+    if not row:
+        raise HTTPException(status_code=404, detail="Developer not found")
+
+    return to_public(row)
+
+
 @app.get("/api/public/stats")
 async def public_stats():
     async with aiosqlite.connect(DB_PATH) as db:
